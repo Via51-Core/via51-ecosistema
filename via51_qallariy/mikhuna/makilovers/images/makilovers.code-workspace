@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"name": "🚀 PROD - Makilovers",
+			"path": "ssh://fredy_bazalar@34.171.23.142/home/fredy_bazalar/proxy_data/html/produccion"
+		},
+		{
+			"name": "🧪 DEV - Laboratorio",
+			"path": "ssh://fredy_bazalar@34.171.23.142/home/fredy_bazalar/proxy_data/html/desarrollo"
+		}
+	],
+	"settings": {
+		"workbench.colorCustomizations": {
+			"titleBar.activeBackground": "#e63946",
+			"titleBar.activeForeground": "#ffffff"
+		},
+		"files.exclude": {
+			"**/.git": true,
+			"**/.DS_Store": true,
+			"**/node_modules": true,
+			"*.log": true
+		},
+		"editor.fontSize": 14,
+		"editor.minimap.enabled": false
+	}
+}
