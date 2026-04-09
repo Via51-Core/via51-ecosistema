@@ -1,5 +1,5 @@
 {
-  "name": "via51-ecosistema",
+  "name": "via51-fractal",
   "private": true,
   "workspaces": [
     "via51-root",
@@ -7,13 +7,13 @@
     "via51-gamma"
   ],
   "scripts": {
-    "alfa:dev": "npm run alfa",
-    "alfa:build": "npm run build -w via51-root",
-    "beta:build": "npm run build -w via51-hub",
-    "gamma:build": "npm run build -w via51-gamma",
-    "build": "npm run alfa:build"
+    "alfa:dev": "npm run dev -w via51-alfa",
+    "beta:dev": "npm run dev -w via51-beta",
+    "gamma:dev": "npm run dev -w via51-gamma",
+    "build": "npm run build -w via51-alfa"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   }
 }
