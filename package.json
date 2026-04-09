@@ -1,25 +1,7 @@
-{
-  "name": "via51-holding",
-  "private": true,
-  "scripts": {
-    "alfa": "npx vite via51-root",
-    "beta": "node via51-hub/index.js",
-    "gamma": "npx vite via51-gamma"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
-    "lucide-react": "^0.300.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
-    "@vitejs/plugin-react": "^4.0.0",
-    "autoprefixer": "^10.4.27",
-    "postcss": "^8.5.9",
-    "tailwindcss": "^4.2.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.0.0",
-    "vite": "^4.5.0"
-  }
-}
+"scripts": {
+  "alfa:dev": "npm run alfa",
+  "alfa:build": "npm run build -w via51-root",
+  "beta:build": "npm run build -w via51-hub",
+  "gamma:build": "npm run build -w via51-gamma",
+  "build": "npm run alfa:build && npm run beta:build && npm run gamma:build"
+},
