@@ -12,5 +12,8 @@
     "beta:build": "npm run build -w via51-hub",
     "gamma:build": "npm run build -w via51-gamma",
     "build": "npm run alfa:build"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
   }
 }
