@@ -1,10 +1,15 @@
 {
-  "name": "via51-holding",
-  "private": true,
-  "version": "1.0.0",
-  "workspaces": [
-    "via51-alfa",
-    "via51-beta",
-    "via51-gamma"
-  ]
+    "name": "via51-holding",
+    "private": true,
+    "version": "1.0.0",
+    "workspaces": [
+        "via51-alfa",
+        "via51-beta",
+        "via51-gamma"
+    ],
+    "scripts": {
+        "dev": "npm run dev --workspaces",
+        "build": "npm run build --workspaces",
+        "install-all": "npm install --workspaces"
+    }
 }

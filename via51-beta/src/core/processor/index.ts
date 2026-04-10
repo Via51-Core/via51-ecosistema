@@ -1,8 +1,10 @@
-import { createClient } from '@supabase/supabase-client';
-import { CorePayload, ValidationResult } from '../../types/core';
+import { createClient } from '@supabase/supabase-js';
+import { CorePayload } from '../../types/core';
 
-// Inicialización agnóstica (Variables de entorno gestionadas por Gamma)
-const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+const supabase = createClient(
+    import.meta.env.VITE_SUPABASE_URL || '',
+    import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+);
 
 export class UniversalProcessor {
 
@@ -10,7 +12,6 @@ export class UniversalProcessor {
         const { sender, timestamp } = payload.metadata;
 
         try {
-            // 1. VERIFICACIÓN DE SOBERANÍA (Jerarquía)
             const { data: permission } = await supabase
                 .from('user_permissions')
                 .select('*')
@@ -21,9 +22,7 @@ export class UniversalProcessor {
                 throw new Error("INSUBORDINACIÓN: Nivel de jerarquía insuficiente.");
             }
 
-            // 2. EJECUCIÓN DE TRANSICIÓN (Update Domain Data)
-            // Agnosticismo: No sabemos qué es el payload, solo que va a 'domain_data'
-            const { data: record, error: txError } = await supabase
+            const { error: txError } = await supabase
                 .from('domain_data')
                 .upsert({
                     node_id: payload.data.nodeId,
@@ -34,10 +33,8 @@ export class UniversalProcessor {
 
             if (txError) throw txError;
 
-            // 3. REGISTRO INMUTABLE (sys_events)
             await this.logToSysEvents(payload, 'SUCCESS');
 
-            // 4. VAULT DE RESPALDO (sys_payload_vault)
             await supabase.from('sys_payload_vault').insert({
                 node_id: payload.data.nodeId,
                 payload: payload.data,
@@ -45,7 +42,7 @@ export class UniversalProcessor {
                 is_active: true
             });
 
-        } catch (error) {
+        } catch (error: any) {
             await this.logToSysEvents(payload, 'FAILURE');
             console.error(`[PROCESSOR-ERROR] ${error.message}`);
             throw error;
@@ -63,7 +60,9 @@ export class UniversalProcessor {
     }
 
     private static generateChecksum(data: any): string {
-        // Lógica para asegurar la integridad de los datos
-        return Buffer.from(JSON.stringify(data)).toString('base64').substring(0, 16);
+        const str = JSON.stringify(data);
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+            return String.fromCharCode(parseInt(p1, 16));
+        })).substring(0, 16);
     }
 }
