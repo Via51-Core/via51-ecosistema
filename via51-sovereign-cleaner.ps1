@@ -1,3 +1,63 @@
+# VIA51 ANTIGRAVITY - SOVEREIGN CLEANER & SEO INJECTOR
+# SEQUENCE: [V51-A20-SEO]
+
+$RootPath = "C:\via51-fractal"
+$AlfaPath = "$RootPath\via51-alfa"
+$BetaPath = "$RootPath\via51-beta"
+
+Write-Host "--- INICIANDO INYECCION DE SEO Y LIMPIEZA ESTRUCTURAL ---" -ForegroundColor Cyan
+
+# 1. INYECCION DE METADATOS EN INDEX.HTML (ALFA)
+$SEO_HTML = @'
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/ceo-lima.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO BASICO -->
+    <title>VIA51 Antigravity | Desarrollo Sostenible de Calidad Mundial</title>
+    <meta name="description" content="Plataforma soberana para la gestion ciudadana y el desarrollo sostenible de calidad mundial en una generacion. Peru Soberano." />
+    <meta name="keywords" content="via51, antigravity, peru, desarrollo sostenible, calidad mundial, soberania digital, gestion ciudadana" />
+    <meta name="author" content="Fredy Bazalar" />
+
+    <!-- METADATOS DE COMPARTICION (OPEN GRAPH) -->
+    <meta property="og:title" content="VIA51 Antigravity - Peru Soberano" />
+    <meta property="og:description" content="Por un Peru con desarrollo sostenible de calidad mundial en una generacion." />
+    <meta property="og:image" content="/ceo-lima.png" />
+    <meta property="og:url" content="https://via51.org" />
+    <meta property="og:type" content="website" />
+
+    <!-- TWITTER / X CARDS -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="VIA51 Antigravity" />
+    <meta name="twitter:description" content="Desarrollo sostenible de calidad mundial en una generacion." />
+    <meta name="twitter:image" content="/ceo-lima.png" />
+
+    <!-- ESTRUCTURA SEMANTICA (JSON-LD) PARA GOOGLE -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "VIA51 Antigravity",
+      "url": "https://via51.org",
+      "logo": "https://via51.org/ceo-lima.png",
+      "slogan": "Por un Peru con desarrollo sostenible de calidad mundial en una generacion"
+    }
+    </script>
+</head>
+<body style="background-color: black; margin: 0;">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
+'@
+Set-Content -Path "$AlfaPath\index.html" -Value $SEO_HTML
+Write-Host "[SEO] Metadatos inyectados en index.html" -ForegroundColor Green
+
+# 2. SELLADO DE INTERFAZ ALFA (App.tsx) - MANTENIENDO GEOMETRIA A-19
+$AlfaApp = @'
 import React, { useState, useEffect } from "react";
 
 export default function App() {
@@ -63,3 +123,8 @@ export default function App() {
         </main>
     );
 }
+'@
+Set-Content -Path "$AlfaPath\src\App.tsx" -Value $AlfaApp
+
+Write-Host "--- PROCESO COMPLETADO EXITOSAMENTE ---" -ForegroundColor Green
+Write-Host "SEO INYECTADO. LISTO PARA GIT PUSH." -ForegroundColor White
