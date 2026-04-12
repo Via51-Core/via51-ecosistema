@@ -8,8 +8,8 @@ app.use(express.json());
 const TAITA_DATA = {
     img: "/ceo-lima.png",
     thoughts: [
-        "Primero en calificaciones y al fondo de la cédula para moverles el piso a los corruptos.",
-        "¡Hay taita lindo! Hasta que al fin te revelaste como morado... Taitita es peruano."
+        "Primero en calificaciones y al fondo de la cedula para moverles el piso a los corruptos.",
+        "Hay taita lindo, hasta que al fin te revelaste como morado, taitita es peruano."
     ]
 };
 
