@@ -1,3 +1,93 @@
+# VIA51 ANTIGRAVITY - LABORATORY SYNC SCRIPT
+# SEQUENCE: [V51-SYNC-M05-M07-A24]
+
+$RootPath = "C:\via51-fractal"
+$BetaCore = "$RootPath\via51-beta\src\core"
+$AlfaApp = "$RootPath\via51-alfa\src\App.tsx"
+
+Write-Host "--- INICIANDO SELLADO DE ARCHIVOS AL 100% ---" -ForegroundColor Cyan
+
+# 1. ACTUALIZACION: event_log.ts (MECANICA 05)
+$EventLog = @'
+/**
+ * V51_DNA: { node: "CORE-BETA", type: "MECHANIC", seq: "M-05-MIRROR" }
+ * MECANICA 05: SELLADO EN SUPABASE CON PROTOCOLO ESPEJO
+ */
+import { createClient } from "@supabase/supabase-js";
+import { V51_Result } from "./processor";
+
+const supabase = createClient(
+    process.env.SUPABASE_URL || "", 
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+);
+
+export class CoreEventLog {
+    public static async seal(result: V51_Result, env: string): Promise<string> {
+        // DECISOR DE TABLA: SOBERANIA DE ENTORNO
+        const targetTable = (env === "LAB") ? "dev_sys_events" : "sys_events";
+        
+        console.log(`[EVENT_LOG] Registrando en: ${targetTable.toUpperCase()}`);
+
+        try {
+            const { data, error } = await supabase
+                .from(targetTable)
+                .insert([{
+                    actor_id: result.dna_origin,
+                    action_type: result.action_performed,
+                    payload: result.payload_out
+                }])
+                .select();
+
+            if (error) throw error;
+            return data[0].id;
+        } catch (e: any) {
+            console.error(`[EVENT_LOG] FALLO: ${e.message}`);
+            return "ERROR_UNSEALED";
+        }
+    }
+}
+'@
+Set-Content -Path "$BetaCore\event_log.ts" -Value $EventLog
+
+# 2. ACTUALIZACION: blackbox_main.ts (MECANICA 07)
+$BlackBox = @'
+/**
+ * V51_DNA: { node: "CORE-BETA", type: "MECHANIC", seq: "M-07-DB" }
+ * MECANICA 07: INTERFAZ DE LA CAJA NEGRA (THE BLACK BOX)
+ */
+import { CoreValidator, V51_Package } from "./validator";
+import { CoreProcessor } from "./processor";
+import { CoreOrchestrator } from "./orchestrator";
+import { CoreHangar } from "./hangar";
+import { CoreEventLog } from "./event_log";
+
+export class Via51BlackBox {
+    public static async handleSinapsis(pkg: V51_Package): Promise<any> {
+        console.log(`[BLACKBOX] Pulso de ${pkg.v51_dna.node} [ENV: ${pkg.v51_dna.env || 'PROD'}]`);
+
+        if (!CoreValidator.validate(pkg)) {
+            return { status: "ERROR", msg: "SINAPSIS_RECHAZADA" };
+        }
+
+        const scenario = CoreHangar.loadScenario("ASUNTOS-PUBLICOS");
+        if (!scenario) return { status: "ERROR", msg: "SCENARIO_MISSING" };
+
+        const result = await CoreProcessor.process(pkg);
+
+        // EXTRAER ENTORNO DEL DNA PARA EL SELLO
+        const env = (pkg.v51_dna as any).env || "PROD";
+        const tx_id = await CoreEventLog.seal(result, env);
+        
+        const dispatchPlan = CoreOrchestrator.orchestrate(result);
+
+        return { ...result, tx_id, plan: dispatchPlan };
+    }
+}
+'@
+Set-Content -Path "$BetaCore\blackbox_main.ts" -Value $BlackBox
+
+# 3. ACTUALIZACION: App.tsx (DRIVER ALFA - NIVEL 0)
+$AlfaContent = @'
 /**
  * V51_DNA: { id: "NODE-ALFA-0", seq: "A-24", env: "LAB" }
  */
@@ -62,3 +152,8 @@ export default function App() {
         </main>
     );
 }
+'@
+Set-Content -Path "$AlfaApp" -Value $AlfaContent
+
+Write-Host "--- ACTUALIZACION COMPLETADA AL 100% ---" -ForegroundColor Green
+Write-Host "ARCHIVOS SELLADOS. PROCEDA CON GIT PUSH ORIGIN DEV." -ForegroundColor White
