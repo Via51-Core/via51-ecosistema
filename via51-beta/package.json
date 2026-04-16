@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx tsx watch src/server.ts",
-    "start": "npx tsx src/server.ts"
+    "dev": "npx tsx watch api/index.ts",
+    "start": "npx tsx api/index.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
