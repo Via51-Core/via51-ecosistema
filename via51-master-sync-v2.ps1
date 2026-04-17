@@ -1,3 +1,102 @@
+# VIA51 ANTIGRAVITY - MASTER SYNC V2
+# PROTOCOLO: SIN ACENTOS / CALIDAD MUNDIAL / ARCHIVOS AL 100%
+
+$RootPath = "C:\via51-fractal"
+$BetaApi = "$RootPath\via51-beta\api"
+$AlfaApp = "$RootPath\via51-alfa\src\App.tsx"
+
+Write-Host "--- RECONSTRUYENDO SINAPSIS TOTAL (ZERO ERRORS) ---" -ForegroundColor Cyan
+
+# 1. ACTUALIZACION: api/core/validator.ts (LA ADUANA)
+$ValidatorCode = @'
+export class CoreValidator {
+    public static validate(input: any): boolean {
+        // Validacion minimalista para asegurar la sinapsis en Laboratorio
+        const hasDna = input && input.v51_dna && input.v51_dna.node;
+        const hasPayload = input && input.payload && input.payload.dni;
+        return !!(hasDna && hasPayload);
+    }
+}
+'@
+Set-Content -Path "$BetaApi\core\validator.ts" -Value $ValidatorCode
+
+# 2. ACTUALIZACION: api/core/blackbox_main.ts (EL NUCLEO)
+$BlackBoxCode = @'
+import { CoreValidator } from "./validator.js";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(process.env.SUPABASE_URL || "", process.env.SUPABASE_SERVICE_ROLE_KEY || "");
+
+export class Via51BlackBox {
+    public static async handleSinapsis(pkg: any): Promise<any> {
+        // 1. VALIDACION DE ESTRUCTURA
+        if (!CoreValidator.validate(pkg)) {
+            return { status: "ERROR", msg: "ESTRUCTURA_INVALIDA" };
+        }
+
+        try {
+            // 2. CONTRASTE EN REGISTRO MAESTRO
+            const { data: actor, error: actorErr } = await supabase
+                .from("sys_registry")
+                .select("*")
+                .eq("dni", pkg.payload.dni)
+                .single();
+
+            if (actorErr || !actor) {
+                return { status: "DENIED", msg: "DNI_NO_ENCONTRADO" };
+            }
+
+            // 3. SELLADO EN TABLA ESPEJO (LAB) O REAL (PROD)
+            const targetTable = (pkg.v51_dna.env === "LAB") ? "dev_sys_events" : "sys_events";
+            const { data: event, error: eventErr } = await supabase
+                .from(targetTable)
+                .insert([{
+                    actor_id: actor.id,
+                    action_type: "SINAPSIS_VITALICIA",
+                    payload: { dni: pkg.payload.dni, env: pkg.v51_dna.env }
+                }])
+                .select();
+
+            if (eventErr) throw eventErr;
+
+            return { 
+                status: "SUCCESS", 
+                tx_id: event[0].id, 
+                user: { name: actor.full_name, role: actor.role, vitalicio: actor.is_vitalicio, auth: actor.auth_level } 
+            };
+
+        } catch (e: any) {
+            return { status: "ERROR", msg: e.message };
+        }
+    }
+}
+'@
+Set-Content -Path "$BetaApi\core\blackbox_main.ts" -Value $BlackBoxCode
+
+# 3. ACTUALIZACION: api/index.ts (EL HUB)
+$HubCode = @'
+import express from "express";
+import cors from "cors";
+import { Via51BlackBox } from "./core/blackbox_main.js";
+
+const app = express();
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+app.get("/", (req, res) => res.send("VIA51 HUB ONLINE - B-35"));
+
+app.post("/api/v1/gatekeeper", async (req, res) => {
+    const output = await Via51BlackBox.handleSinapsis(req.body);
+    const statusCode = output.status === "SUCCESS" ? 200 : (output.status === "DENIED" ? 403 : 400);
+    res.status(statusCode).json(output);
+});
+
+export default app;
+'@
+Set-Content -Path "$BetaApi\index.ts" -Value $HubCode
+
+# 4. ACTUALIZACION: App.tsx (ALFA)
+$AlfaCode = @'
 import React, { useState } from "react";
 
 export default function App() {
@@ -63,3 +162,8 @@ export default function App() {
         </main>
     );
 }
+'@
+Set-Content -Path $AlfaApp -Value $AlfaCode
+
+Write-Host "--- SINAPSIS RECONSTRUIDA AL 100% ---" -ForegroundColor Green
+Write-Host "PROCEDA CON GIT PUSH ORIGIN DEV" -ForegroundColor White

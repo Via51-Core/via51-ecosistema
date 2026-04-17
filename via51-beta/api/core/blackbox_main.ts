@@ -1,32 +1,48 @@
-/**
- * V51_DNA: { node: "CORE-BETA", type: "MECHANIC", seq: "M-07-DB" }
- * MECANICA 07: INTERFAZ DE LA CAJA NEGRA (THE BLACK BOX)
- */
-import { CoreValidator, V51_Package } from "./validator.js";
-import { CoreProcessor } from "./processor.js";
-import { CoreOrchestrator } from "./orchestrator.js";
-import { CoreHangar } from "./hangar.js";
-import { CoreEventLog } from "./event_log.js";
+import { CoreValidator } from "./validator.js";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(process.env.SUPABASE_URL || "", process.env.SUPABASE_SERVICE_ROLE_KEY || "");
 
 export class Via51BlackBox {
-    public static async handleSinapsis(pkg: V51_Package): Promise<any> {
-        console.log(`[BLACKBOX] Pulso de ${pkg.v51_dna.node} [ENV: ${pkg.v51_dna.env || 'PROD'}]`);
-
+    public static async handleSinapsis(pkg: any): Promise<any> {
+        // 1. VALIDACION DE ESTRUCTURA
         if (!CoreValidator.validate(pkg)) {
-            return { status: "ERROR", msg: "SINAPSIS_RECHAZADA" };
+            return { status: "ERROR", msg: "ESTRUCTURA_INVALIDA" };
         }
 
-        const scenario = CoreHangar.loadScenario("ASUNTOS-PUBLICOS");
-        if (!scenario) return { status: "ERROR", msg: "SCENARIO_MISSING" };
+        try {
+            // 2. CONTRASTE EN REGISTRO MAESTRO
+            const { data: actor, error: actorErr } = await supabase
+                .from("sys_registry")
+                .select("*")
+                .eq("dni", pkg.payload.dni)
+                .single();
 
-        const result = await CoreProcessor.process(pkg);
+            if (actorErr || !actor) {
+                return { status: "DENIED", msg: "DNI_NO_ENCONTRADO" };
+            }
 
-        // EXTRAER ENTORNO DEL DNA PARA EL SELLO
-        const env = (pkg.v51_dna as any).env || "PROD";
-        const tx_id = await CoreEventLog.seal(result, env);
-        
-        const dispatchPlan = CoreOrchestrator.orchestrate(result);
+            // 3. SELLADO EN TABLA ESPEJO (LAB) O REAL (PROD)
+            const targetTable = (pkg.v51_dna.env === "LAB") ? "dev_sys_events" : "sys_events";
+            const { data: event, error: eventErr } = await supabase
+                .from(targetTable)
+                .insert([{
+                    actor_id: actor.id,
+                    action_type: "SINAPSIS_VITALICIA",
+                    payload: { dni: pkg.payload.dni, env: pkg.v51_dna.env }
+                }])
+                .select();
 
-        return { ...result, tx_id, plan: dispatchPlan };
+            if (eventErr) throw eventErr;
+
+            return { 
+                status: "SUCCESS", 
+                tx_id: event[0].id, 
+                user: { name: actor.full_name, role: actor.role, vitalicio: actor.is_vitalicio, auth: actor.auth_level } 
+            };
+
+        } catch (e: any) {
+            return { status: "ERROR", msg: e.message };
+        }
     }
 }
