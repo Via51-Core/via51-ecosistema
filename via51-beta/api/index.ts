@@ -7,58 +7,54 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 const supabase = createClient(
-    process.env.SUPABASE_URL || "",
+    process.env.SUPABASE_URL || "", 
     process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 );
 
-/**
- * LOGICA DE TABLA DE VERDAD (Rango 06917901 - 06917999, solo impares)
- */
-const validateTruthTable = (dni: string): boolean => {
-    const num = parseInt(dni);
-    const min = 6917901;
-    const max = 6917999;
-
-    // Condicion: Dentro del rango Y es impar
-    return (num >= min && num <= max && num % 2 !== 0);
-};
-
-app.get("/", (req, res) => res.status(200).send("VIA51 HUB OPERATIVO - TRUTH TABLE MODE"));
+app.get("/", (req, res) => res.status(200).send("VIA51 HUB OPERATIVO - MODO SOBERANO"));
 
 app.post("/api/v1/gatekeeper", async (req, res) => {
-    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     const { v51_dna, payload } = req.body;
-    const dni = payload.dni;
 
     try {
-        // 1. CONTRASTE CON TABLA DE VERDAD ALGORITMICA
-        if (!validateTruthTable(dni)) {
-            console.warn(`[HUB] Rechazado: DNI ${dni} fuera de rango o par.`);
-            return res.status(403).json({ status: "DENIED", msg: "IDENTIDAD_NO_VALIDA" });
+        // 1. BUSQUEDA EN REGISTRO MAESTRO
+        const { data: actor, error: actorErr } = await supabase
+            .from("sys_registry")
+            .select("*")
+            .eq("dni", payload.dni)
+            .single();
+
+        if (actorErr || !actor) {
+            return res.status(403).json({ status: "DENIED", msg: "IDENTIDAD_NO_REGISTRADA" });
         }
 
-        // 2. SELLADO EN BUNKER (Supabase)
+        // 2. SELLADO DE EVENTO VINCULADO
         const targetTable = (v51_dna.env === "LAB") ? "dev_sys_events" : "sys_events";
-
-        const { data: event, error } = await supabase
+        const { data: event, error: eventErr } = await supabase
             .from(targetTable)
             .insert([{
-                action_type: "SINAPSIS_TEST_VALIDA",
-                payload: {
-                    dni: dni,
-                    ip_origin: ip,
-                    logic: "TruthTable_Range_Odd"
+                actor_id: actor.id,
+                action_type: "ACCESO_AUTORIZADO",
+                payload: { 
+                    auth: actor.auth_level,
+                    is_vitalicio: actor.is_vitalicio,
+                    ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress
                 }
             }])
             .select();
 
-        if (error) throw error;
+        if (eventErr) throw eventErr;
 
-        console.log(`[HUB] Sinapsis exitosa para DNI: ${dni}`);
-        res.status(200).json({
-            status: "SUCCESS",
+        // 3. RESPUESTA CON CUALIFICACIONES
+        res.status(200).json({ 
+            status: "SUCCESS", 
             tx_id: event[0].id,
-            identity: `Ciudadano ${dni}`
+            user: {
+                name: actor.full_name,
+                role: actor.role,
+                vitalicio: actor.is_vitalicio,
+                auth: actor.auth_level
+            }
         });
 
     } catch (e: any) {
