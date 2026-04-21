@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(process.env.SUPABASE_URL || "", process.env.SUPABASE_SERVICE_ROLE_KEY || "");
 
 export class Via51BlackBox {
-    public static async handleSinapsis(pkg: any): Promise<any> {
+    public static async handleSinapsis(pkg: any, ip: string): Promise<any> {
         const { action, payload, v51_dna } = pkg;
 
         if (action === "GET_SMART_CANVAS") {
@@ -11,25 +11,45 @@ export class Via51BlackBox {
         }
 
         if (action === "CHECK_IDENTITY") {
-            const { data: actor } = await supabase.from("sys_registry").select("*").eq("dni", payload.dni).single();
-            if (!actor) return { status: "DENIED", msg: "NO_REGISTRADO" };
-            return { status: "SUCCESS", user: actor };
-        }
+            const dni = payload.dni;
+            
+            // A. Obtener Geo-Data (Simulado o via API externa en produccion)
+            const geo = { city: "Lima", region: "Lima", country: "Peru" };
 
-        if (action === "SUBMIT_CONTRIBUTION") {
-            const { data: actor } = await supabase.from("sys_registry").select("id").eq("dni", payload.dni).single();
-            if (!actor) return { status: "DENIED" };
+            // B. Consultar Registro Maestro
+            let { data: actor } = await supabase.from("sys_registry").select("*").eq("dni", dni).single();
 
-            const { data, error } = await supabase.from("sys_contributions").insert([{
+            // C. Si es INEXISTENTE (Confirmado por humano), denegar amablemente
+            if (actor && actor.auth_status === "INEXISTENTE") {
+                return { status: "DENIED_AMABLE", msg: "Lo sentimos, el registro no pudo ser validado." };
+            }
+
+            // D. Si no existe, registrar como nuevo (Nivel 1)
+            if (!actor) {
+                const { data: newActor } = await supabase.from("sys_registry").insert([{
+                    dni: dni,
+                    full_name: "Ciudadano Nuevo",
+                    role: "CITIZEN",
+                    hierarchy_level: 1,
+                    auth_status: "POR_VERIFICAR"
+                }]).select().single();
+                actor = newActor;
+            }
+
+            // E. Sellar evento con IP y Geo
+            const targetTable = (v51_dna.env === "LAB") ? "dev_sys_events" : "sys_events";
+            await supabase.from(targetTable).insert([{
                 actor_id: actor.id,
-                type: payload.type,
-                context_script: payload.context
-            }]).select();
+                action_type: "SINAPSIS_IDENTIDAD",
+                payload: { ip, geo, timestamp: new Date().toISOString(), level: actor.hierarchy_level }
+            }]);
 
-            if (error) return { status: "ERROR", msg: error.message };
-            return { status: "SUCCESS", tx_id: data[0].id };
+            return { 
+                status: "SUCCESS", 
+                user: { name: actor.full_name, level: actor.hierarchy_level, status: actor.auth_status } 
+            };
         }
 
-        return { status: "ERROR", msg: "ACCION_INVALIDA" };
+        return { status: "ERROR" };
     }
 }

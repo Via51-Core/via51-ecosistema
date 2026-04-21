@@ -1,3 +1,96 @@
+# VIA51 ANTIGRAVITY - IDENTIDAD FRACTAL A-45 / B-40
+# PROTOCOLO: SIN ACENTOS / CALIDAD MUNDIAL / ARCHIVOS AL 100%
+
+$RootPath = "C:\via51-fractal"
+$BetaApi = "$RootPath\via51-beta\api"
+$AlfaApp = "$RootPath\via51-alfa\src\App.tsx"
+
+Write-Host "--- SELLANDO PROTOCOLO DE IDENTIDAD FRACTAL ---" -ForegroundColor Cyan
+
+# 1. ACTUALIZACION: api/core/blackbox_main.ts (EL CEREBRO)
+$BlackBox = @'
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(process.env.SUPABASE_URL || "", process.env.SUPABASE_SERVICE_ROLE_KEY || "");
+
+export class Via51BlackBox {
+    public static async handleSinapsis(pkg: any, ip: string): Promise<any> {
+        const { action, payload, v51_dna } = pkg;
+
+        if (action === "GET_SMART_CANVAS") {
+            return { status: "SUCCESS", config: { bg_img: "/ceo-lima.png", thoughts: ["Primero en calificaciones...", "Hay taita lindo..."], interval: 8000 } };
+        }
+
+        if (action === "CHECK_IDENTITY") {
+            const dni = payload.dni;
+            
+            // A. Obtener Geo-Data (Simulado o via API externa en produccion)
+            const geo = { city: "Lima", region: "Lima", country: "Peru" };
+
+            // B. Consultar Registro Maestro
+            let { data: actor } = await supabase.from("sys_registry").select("*").eq("dni", dni).single();
+
+            // C. Si es INEXISTENTE (Confirmado por humano), denegar amablemente
+            if (actor && actor.auth_status === "INEXISTENTE") {
+                return { status: "DENIED_AMABLE", msg: "Lo sentimos, el registro no pudo ser validado." };
+            }
+
+            // D. Si no existe, registrar como nuevo (Nivel 1)
+            if (!actor) {
+                const { data: newActor } = await supabase.from("sys_registry").insert([{
+                    dni: dni,
+                    full_name: "Ciudadano Nuevo",
+                    role: "CITIZEN",
+                    hierarchy_level: 1,
+                    auth_status: "POR_VERIFICAR"
+                }]).select().single();
+                actor = newActor;
+            }
+
+            // E. Sellar evento con IP y Geo
+            const targetTable = (v51_dna.env === "LAB") ? "dev_sys_events" : "sys_events";
+            await supabase.from(targetTable).insert([{
+                actor_id: actor.id,
+                action_type: "SINAPSIS_IDENTIDAD",
+                payload: { ip, geo, timestamp: new Date().toISOString(), level: actor.hierarchy_level }
+            }]);
+
+            return { 
+                status: "SUCCESS", 
+                user: { name: actor.full_name, level: actor.hierarchy_level, status: actor.auth_status } 
+            };
+        }
+
+        return { status: "ERROR" };
+    }
+}
+'@
+Set-Content -Path "$BetaApi\core\blackbox_main.ts" -Value $BlackBox
+
+# 2. ACTUALIZACION: api/index.ts (EL HUB)
+$HubCode = @'
+import express from "express";
+import cors from "cors";
+import { Via51BlackBox } from "./core/blackbox_main.js";
+
+const app = express();
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+app.get("/", (req, res) => res.send("VIA51 HUB ONLINE - B-40"));
+
+app.post("/api/v1/gatekeeper", async (req, res) => {
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "0.0.0.0";
+    const output = await Via51BlackBox.handleSinapsis(req.body, String(ip));
+    res.status(200).json(output);
+});
+
+export default app;
+'@
+Set-Content -Path "$BetaApi\index.ts" -Value $HubCode
+
+# 3. ACTUALIZACION: App.tsx (LA CARA)
+$AlfaCode = @'
 import React, { useState, useEffect } from "react";
 
 export default function App() {
@@ -90,3 +183,7 @@ export default function App() {
         </main>
     );
 }
+'@
+Set-Content -Path $AlfaApp -Value $AlfaCode
+
+Write-Host "--- PROTOCOLO DE IDENTIDAD SELLADO AL 100% ---" -ForegroundColor Green
