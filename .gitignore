@@ -1,32 +1,7 @@
-﻿# --- VIA51 ANTIGRAVITY: ESCUDO DE PRIVACIDAD ---
-
-# Dependencias (Fractal: ignora en raíz y subcarpetas)
-**/node_modules/
-node_modules/
-
-# Archivos de Configuración Local (SECRETOS CRÍTICOS)
-**/.env
-**/.env.local
-**/.env.*.local
-.env
-.env.local
-
-# Artefactos de Construcción y Caché
-**/dist/
-**/.vite/
+﻿node_modules/
+.next/
 dist/
-.vite/
-.vercel/
-
-# Candados de Versión (Evita conflictos de "Raneo" entre máquinas)
-package-lock.json
-
-# Registros de Error
+build/
+.env*
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Archivos de Sistema
-.DS_Store
-Thumbs.db
+AUDITORIA_*

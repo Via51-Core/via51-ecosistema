@@ -1,68 +1,24 @@
-{
+﻿{
   "compilerOptions": {
     "target": "ESNext",
-    "useDefineForClassFields": true,
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
-    "allowJs": false,
-    "skipLibCheck": true,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
-    "types": [
-      "vite/client",
-      "node"
-    ],
     "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@alfa/*": [
-        "src/layers/alfa/*"
-      ],
-      "@beta/*": [
-        "src/layers/beta/*"
-      ],
-      "@gamma/*": [
-        "src/layers/gamma/*"
-      ],
-      "@ui/*": [
-        "src/layers/ui/*"
-      ],
-      "@kernel/*": [
-        "src/layers/gamma/kernel/*"
-      ],
-      "@middleware/*": [
-        "src/layers/gamma/middleware/*"
-      ],
-      "@shared/*": [
-        "src/layers/shared/*"
-      ]
-    }
+      "@/*": ["src/*"]
+    },
+    "types": ["node", "vite/client"]
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.txt",
-    "src/app"
-  ],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ]
+  "include": ["src", "vite-env.d.ts"]
 }

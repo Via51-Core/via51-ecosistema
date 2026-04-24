@@ -9,8 +9,10 @@
         "dev:fractal": "npx concurrently \"npm run dev:beta\" \"npm run dev:alfa\" \"npm run dev:gamma\""
     },
     "devDependencies": {
+        "@types/node": "^25.6.0",
         "concurrently": "^8.2.0",
         "ts-node-dev": "^2.0.0",
-        "typescript": "^5.0.0"
+        "typescript": "^5.0.0",
+        "vite": "^8.0.10"
     }
 }
