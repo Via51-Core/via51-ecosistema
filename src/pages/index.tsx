@@ -1,24 +1,25 @@
 ﻿import { FractalLayout } from '@/components/layout/FractalLayout';
 import { HeroSingularity } from '@/components/visuals/HeroSingularity';
 import { KineticGovernance } from '@/components/visuals/KineticGovernance';
-import { TriadNavigator } from '@/components/navigation/TriadNavigator';
-import { EventStream } from '@/components/data/EventStream';
+import { useUIConfig } from '@/hooks/useUIConfig';
 
 export default function AlfaLanding() {
+  const ui = useUIConfig('ALFA');
+
   return (
     <FractalLayout nodeType="ALFA">
-      <section className="relative z-20 flex flex-col items-center justify-center min-h-screen">
-        <HeroSingularity />
+      <section className={`flex flex-col ${ui.alignment} justify-center min-h-screen ${ui.padding}`} style={{ color: ui.primaryColor }}>
         
-        {/* El Reflejo de la Gobernanza (Sincronizado con BETA) */}
-        <KineticGovernance />
+        {/* Imagen/Hero con visibilidad dinámica */}
+        <div className={`${ui.showMobileImage ? 'block' : 'hidden md:block'}`}>
+          <HeroSingularity />
+        </div>
+        
+        <div className={`mt-12 transition-all duration-1000 ${ui.textSize}`}>
+          <KineticGovernance />
+        </div>
 
-        <TriadNavigator />
       </section>
-
-      <footer className="mt-24 border-t border-v51-gold/10 pt-8">
-        <EventStream />
-      </footer>
     </FractalLayout>
   );
 }
