@@ -1,8 +1,12 @@
-import { motion } from 'framer-motion';
-export const SovereignReader = ({ title, content, concept }) => (
-  <div className="max-w-4xl mx-auto p-12 bg-white/[0.01] border-l border-v51-gold/20">
-    <span className="text-v51-gold font-mono text-[10px] tracking-[0.5em] uppercase">{concept}</span>
-    <h2 className="text-4xl font-black text-white mt-4 mb-8 uppercase tracking-tighter">{title}</h2>
-    <div className="text-gray-400 text-lg font-light leading-relaxed whitespace-pre-wrap">{content}</div>
+﻿interface SovereignReaderProps {
+  title: string;
+  content: string;
+  concept: string;
+}
+export const SovereignReader = ({ title, content, concept }: SovereignReaderProps) => (
+  <div style={{ borderLeft: '2px solid #D4AF37', paddingLeft: '20px', margin: '20px 0' }}>
+    <span style={{ color: '#D4AF37', fontSize: '10px', textTransform: 'uppercase' }}>{concept}</span>
+    <h2 style={{ fontSize: '32px', fontWeight: '900', color: '#fff' }}>{title}</h2>
+    <p style={{ color: '#ccc', fontSize: '18px', lineHeight: '1.6' }}>{content}</p>
   </div>
 );
