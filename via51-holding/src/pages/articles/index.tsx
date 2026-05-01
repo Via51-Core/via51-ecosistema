@@ -18,17 +18,10 @@ const ArticlesIndex = () => {
       <h1 className="text-[#D4AF37] text-xs font-black tracking-[1em] mb-16">INDICE DE PRODUCCION</h1>
       <div className="flex flex-col gap-8">
         {articles.map((art: any) => (
-          <Link 
-            key={art.id} 
-            to={`/articles/${art.issue_code?.replace(/\./g, '')}`}
-            className="group flex flex-col border-b border-white/5 pb-6 no-underline"
-          >
-            <span className="text-white text-3xl font-black group-hover:text-[#D4AF37] transition-colors uppercase">
+          <Link key={art.id} to={`/articles/${art.issue_code?.replace(/\./g, '')}`} className="no-underline group">
+            <div className="text-white text-3xl font-black group-hover:text-[#D4AF37] transition-all uppercase">
               {art.title}
-            </span>
-            <span className="text-white/30 text-[10px] tracking-[0.3em] mt-2">
-              ISSUE: {art.issue_code}
-            </span>
+            </div>
           </Link>
         ))}
       </div>
