@@ -1,99 +1,104 @@
-﻿import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 
-// DEFINICIÓN DE ESTRUCTURA SOBERANA (Interfaces)
-interface SectionContent {
-  title: string; subtitle: string;
-  s1: string; c1: string; s2: string; c2: string; s3: string; c3: string;
-  mantra: string;
-}
-
-interface TrilingualContent {
-  [key: string]: SectionContent;
-}
-
-export default function Article_05_01() {
-  const [activeLang, setLang] = useState<string>('ES');
-  const [sectionIndex, setSectionIndex] = useState(0);
-  const [stats, setStats] = useState<any[]>([]);
-  const issueCode = '2026.05.01.001';
-
-  const langs = [ { id: 'ES', label: 'Español' }, { id: 'QU', label: 'Quechua' }, { id: 'EN', label: 'English' } ];
-
-  const content: TrilingualContent = {
-    ES: { 
-      title: "Producción", subtitle: "Soberana",
-      s1: "1. Homenaje a la Dignidad del Trabajo", c1: "Saludamos hoy el esfuerzo inalcanzable de los peruanos...",
-      s2: "2. El Estándar Inka", c2: "El Estado Inka demostró que es posible alcanzar un bienestar de calidad mundial...",
-      s3: "3. La Producción como Plano Natural", c3: "El primer nudo de nuestro khipu generacional es la transmutación...",
-      mantra: "NO CELEBRAMOS LA SERVIDUMBRE, ACTIVAMOS LA CREACIÓN. EL BIENESTAR NO SE PIDE, SE PRODUCE." 
-    },
-    QU: { 
-      title: "Qasikay", subtitle: "Llamkay",
-      s1: "1. Llamkaypa sumaq kaynin", c1: "Perupa llamkaqninkunatam saludayku...",
-      s2: "2. Tawantinsuyu", c2: "Inka kamachiyqa rikuchiwanchikmi allin kawsayqa atikuq kasqanta...",
-      s3: "3. Llamkaypacha", c3: "Khipupa ñawpaq k'itunqa llamkay t'ikraymi...",
-      mantra: "MANAM SIRVIQ KAYTACHU YUPAYCHANCHIK, KAWSAY PAQARICHIYTAM KACHARICHINCHIK."
-    },
-    EN: { 
-      title: "Sovereign", subtitle: "Production",
-      s1: "1. Homage to the Dignity of Labor", c1: "Today we salute the tireless effort...",
-      s2: "2. The Inka Standard", c2: "The Inka State proved that world-class wellbeing is possible...",
-      s3: "3. Production", c3: "The first knot of our generational khipu is the transmutation...",
-      mantra: "WE DO NOT CELEBRATE SERVITUDE, WE ACTIVATE CREATION."
-    }
-  };
+const ArticlePage = () => {
+  const [lang, setLang] = useState<'es' | 'qu' | 'en'>('es');
+  const [step, setStep] = useState(1);
+  const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    const syncImpact = async () => {
-      await supabase.from('sys_analytics_articles').insert([{ article_id: issueCode, region: 'LIMA' }]);
-      const { data } = await supabase.from('view_readers_summary').select('*').eq('article_id', issueCode);
-      if (data) setStats(data);
+    const sync = async () => {
+      const { data: res } = await supabase.from('sys_production').select('content').eq('issue_code', '2026.05.01.001').single();
+      if (res?.content) {
+        const raw = res.content;
+        setData(typeof raw === 'string' ? JSON.parse(raw) : raw);
+      }
     };
-    syncImpact();
-  }, []);
+    sync();
+    window.scrollTo(0, 0);
+  }, [step, lang]);
+
+  if (!data) return <div style={{ backgroundColor: 'black', minHeight: '100vh' }} />;
+
+  const content = data[lang];
+  const currentTitle = content[`s${step}`];
+  const currentBody = content[`c${step}`];
+
+  const lateralBtn = (dir: 'prev' | 'next') => ({
+    position: 'fixed' as const, top: '50%', transform: 'translateY(-50%)',
+    background: 'none', border: 'none', color: '#D4AF37', fontSize: '4rem',
+    cursor: 'pointer', padding: '20px', opacity: 0.2, transition: 'all 0.3s',
+    [dir === 'prev' ? 'left' : 'right']: '2vw', zIndex: 100
+  });
 
   return (
-    <div style={{ backgroundColor: '#050505', color: '#ffffff', minHeight: '100vh', padding: '40px' }}>
-      <div style={{ maxWidth: '850px', margin: '0 auto', position: 'relative' }}>
-        <header style={{ textAlign: 'center', marginBottom: '80px' }}>
-          <h1 style={{ fontSize: '70px', fontWeight: '900', textTransform: 'uppercase' }}>
-            {content[activeLang].title} <br/> 
-            <span style={{ color: '#D4AF37' }}>{content[activeLang].subtitle}</span>
-          </h1>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
-            {langs.map(l => (
-              <button key={l.id} onClick={() => setLang(l.id)} style={{ color: activeLang === l.id ? '#D4AF37' : '#555', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
-                {l.label}
-              </button>
-            ))}
-          </div>
-        </header>
+    <div style={{ minHeight: '100vh', backgroundColor: 'black', color: 'white', padding: '8vh 5vw', position: 'relative', fontFamily: 'system-ui, sans-serif' }}>
+      
+      {/* CABECERA - DIMENSION RECUPERADA */}
+      <header style={{ textAlign: 'center', marginBottom: '10vh' }}>
+        <div style={{ fontSize: '12px', letterSpacing: '1em', color: '#D4AF37', fontWeight: 900, marginBottom: '15px' }}>
+          {content.title.toUpperCase()}
+        </div>
+        <div style={{ fontSize: '3.5rem', fontWeight: 900, letterSpacing: '0.3em', textTransform: 'uppercase', lineHeight: 1.2 }}>
+          {content.subtitle}
+        </div>
+      </header>
 
-        <main style={{ minHeight: '300px', textAlign: 'justify' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '900', textAlign: 'center', marginBottom: '30px' }}>
-            {sectionIndex === 0 ? content[activeLang].s1 : sectionIndex === 1 ? content[activeLang].s2 : content[activeLang].s3}
+      {/* NAVEGACION IDIOMA */}
+      <nav style={{ display: 'flex', justifyContent: 'center', gap: '3rem', marginBottom: '12vh' }}>
+        {['es', 'qu', 'en'].map(l => (
+          <button key={l} onClick={() => setLang(l as any)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: lang === l ? '#D4AF37' : 'rgba(255,255,255,0.2)',
+            fontSize: '10px', fontWeight: 900, letterSpacing: '0.5em',
+            borderBottom: lang === l ? '2px solid #D4AF37' : '2px solid transparent',
+            paddingBottom: '8px', transition: 'all 0.3s'
+          }}>
+            {l === 'es' ? 'ESPANOL' : l === 'qu' ? 'RUNASIMI' : 'ENGLISH'}
+          </button>
+        ))}
+      </nav>
+
+      {/* BOTONES LATERALES (FIJOS) */}
+      {step > 1 && (
+        <button onClick={() => setStep(s => s - 1)} style={lateralBtn('prev')} onMouseEnter={e => e.currentTarget.style.opacity='1'} onMouseLeave={e => e.currentTarget.style.opacity='0.2'}>‹</button>
+      )}
+      {step < 3 && (
+        <button onClick={() => setStep(s => s + 1)} style={lateralBtn('next')} onMouseEnter={e => e.currentTarget.style.opacity='1'} onMouseLeave={e => e.currentTarget.style.opacity='0.2'}>›</button>
+      )}
+
+      {/* CONTENIDO PRINCIPAL - FLUJO LIBRE */}
+      <main style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '10vh' }}>
+        <div key={`${lang}-${step}`} style={{ animation: 'fadeIn 0.8s ease-out' }}>
+          <h2 style={{ fontSize: '2.8rem', fontWeight: 900, marginBottom: '4rem', color: 'white', textTransform: 'uppercase', lineHeight: 1.2 }}>
+            {currentTitle}
           </h2>
-          <p style={{ fontSize: '20px', lineHeight: '1.6', color: '#ccc' }}>
-            {sectionIndex === 0 ? content[activeLang].c1 : sectionIndex === 1 ? content[activeLang].c2 : content[activeLang].c3}
-          </p>
           
-          <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '20px' }}>
-             <button onClick={() => setSectionIndex(Math.max(0, sectionIndex - 1))} disabled={sectionIndex === 0}>ANTERIOR</button>
-             <button onClick={() => setSectionIndex(Math.min(2, sectionIndex + 1))} disabled={sectionIndex === 2}>SIGUIENTE</button>
+          <div style={{ borderLeft: '4px solid #D4AF37', paddingLeft: '4rem', marginBottom: '5rem' }}>
+            <p style={{ fontSize: '1.8rem', lineHeight: 1.8, color: '#EEE', fontWeight: 300, whiteSpace: 'pre-line', margin: 0 }}>
+              {currentBody}
+            </p>
           </div>
 
-          <section style={{ backgroundColor: '#D4AF37', color: '#000', padding: '40px', textAlign: 'center', marginTop: '60px' }}>
-             <p style={{ fontWeight: '900' }}>{content[activeLang].mantra}</p>
-          </section>
-        </main>
+          {/* MANTRA VINCULANTE - INTEGRADO AL FLUJO */}
+          <footer style={{ paddingTop: '4rem', borderTop: '1px solid rgba(212,175,55,0.4)', textAlign: 'center' }}>
+            <p style={{ color: '#D4AF37', fontSize: '1.3rem', fontWeight: 900, letterSpacing: '0.2em', lineHeight: 1.6, margin: '0 0 2rem 0', textTransform: 'uppercase' }}>
+              {content.mantra}
+            </p>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.6em' }}>
+              PAGINA {step} / 3
+            </div>
+          </footer>
+        </div>
+      </main>
 
-        <footer style={{ borderTop: '1px solid #222', marginTop: '60px', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
-           <span>VIA51 ANTIGRAVITY</span>
-           <div>VISITS: {stats.length > 0 ? stats[0].total_readers : 0}</div>
-        </footer>
-      </div>
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        body { margin: 0; background: black; overflow-y: auto; }
+        * { box-sizing: border-box; }
+      `}</style>
     </div>
   );
-}
+};
+
+export default ArticlePage;
